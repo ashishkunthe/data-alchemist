@@ -1,4 +1,4 @@
-import { Paper, Box, Typography, Alert } from "@mui/material";
+import { Paper, Box, Typography, Alert, useTheme } from "@mui/material";
 import {
   DataGrid,
   GridColDef,
@@ -16,6 +16,8 @@ export default function TableSection({
   setErrors,
   validateTable,
 }: any) {
+  const theme = useTheme();
+
   const createColumns = (data: any[]): GridColDef[] =>
     data.length > 0
       ? Object.keys(data[0]).map((key) => ({
@@ -30,8 +32,12 @@ export default function TableSection({
             return (
               <Box
                 sx={{
-                  bgcolor: cellError ? "#ffebee" : "transparent",
-                  color: cellError ? "red" : "inherit",
+                  bgcolor: cellError
+                    ? theme.palette.error.light
+                    : "transparent",
+                  color: cellError
+                    ? theme.palette.error.main
+                    : theme.palette.text.primary,
                   height: "100%",
                   width: "100%",
                   display: "flex",
@@ -48,9 +54,19 @@ export default function TableSection({
 
   return (
     data.length > 0 && (
-      <Paper elevation={3} sx={{ p: 2, mb: 4, borderRadius: 3 }}>
+      <Paper
+        elevation={3}
+        sx={{
+          p: 2,
+          mb: 4,
+          borderRadius: 3,
+          bgcolor: theme.palette.background.paper,
+        }}
+      >
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-          <Typography variant="h6">{title}</Typography>
+          <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>
+            {title}
+          </Typography>
           <ExportMenu data={data} disabled={errors[tableKey]?.length > 0} />
         </Box>
 
@@ -61,20 +77,32 @@ export default function TableSection({
           </Alert>
         )}
 
-        <Box sx={{ height: 300 }}>
+        <Box
+          sx={{
+            height: 300,
+            "& .MuiDataGrid-root": {
+              bgcolor:
+                theme.palette.mode === "dark"
+                  ? "#121212"
+                  : theme.palette.background.default,
+              color: theme.palette.text.primary,
+            },
+          }}
+        >
           <DataGrid
-            rows={data.map((row: any, i: any) => ({ id: i, ...row }))}
+            rows={data.map((row: any, i: number) => ({ id: i, ...row }))}
             columns={createColumns(data)}
             disableRowSelectionOnClick
+            editMode="cell"
             processRowUpdate={(newRow: GridRowModel) => {
               const updated = [...data];
               updated[newRow.id as number] = { ...newRow };
               delete updated[newRow.id as number].id;
-              setData(updated);
 
+              setData(updated);
               setErrors((prev: any) => ({
                 ...prev,
-                [tableKey]: validateTable(title, updated),
+                [tableKey]: validateTable(updated, title),
               }));
 
               return newRow;

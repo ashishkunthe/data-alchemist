@@ -1,6 +1,7 @@
 import { Card, CardContent, Typography, Button } from "@mui/material";
-import { parseFile } from "./fileParser";
 import { validateTable } from "./validators";
+import { mapHeaders } from "@/components/columnMapper";
+import Papa from "papaparse";
 
 export default function UploadCard({
   label,
@@ -15,6 +16,38 @@ export default function UploadCard({
   setErrors: React.Dispatch<React.SetStateAction<any>>;
   validateTitle: string;
 }) {
+  function handleFileUpload(file: File) {
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (!results.data.length) return;
+
+        // Map headers
+        const mappedHeaders = mapHeaders(Object.keys(results.data[0] || {}));
+
+        // Map row values to new header names
+        const mappedData = results.data.map((row: any) => {
+          const newRow: any = {};
+          mappedHeaders.forEach((mappedKey, index) => {
+            newRow[mappedKey] = row[Object.keys(row)[index]];
+          });
+          return newRow;
+        });
+
+        // Save data
+        setData(mappedData);
+
+        // Run validation
+        const validationErrors = validateTable(validateTitle, mappedData);
+        setErrors((prev: any) => ({
+          ...prev,
+          [tableKey]: validationErrors,
+        }));
+      },
+    });
+  }
+
   return (
     <Card
       sx={{
@@ -35,16 +68,11 @@ export default function UploadCard({
           Select File
           <input
             type="file"
+            accept=".csv,.xlsx"
             hidden
             onChange={(e) => {
-              if (e.target.files) {
-                parseFile(e.target.files[0], (parsed) => {
-                  setData(parsed);
-                  setErrors((prev: any) => ({
-                    ...prev,
-                    [tableKey]: validateTable(validateTitle, parsed),
-                  }));
-                });
+              if (e.target.files && e.target.files[0]) {
+                handleFileUpload(e.target.files[0]);
               }
             }}
           />
