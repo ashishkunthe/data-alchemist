@@ -1,7 +1,5 @@
-// components/ValidationSummary.tsx
 import React from "react";
 import { Box, Typography, List, ListItem, Divider } from "@mui/material";
-// import { ValidationError } from "../utils/validationEngine";
 import { ValidationError } from "./validationEngine";
 
 interface Props {

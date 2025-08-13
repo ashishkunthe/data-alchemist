@@ -12,7 +12,6 @@ export const validateCrossTable = (
   const workerIDs = new Set(workers.map((w) => w.WorkerID));
   const taskIDs = new Set(tasks.map((t) => t.TaskID));
 
-  // Example 1: Check if tasks reference valid clients
   tasks.forEach((task, i) => {
     if (task.ClientID && !clientIDs.has(task.ClientID)) {
       errors.push({
@@ -23,7 +22,6 @@ export const validateCrossTable = (
     }
   });
 
-  // Example 2: Check if tasks reference valid workers
   tasks.forEach((task, i) => {
     if (task.WorkerID && !workerIDs.has(task.WorkerID)) {
       errors.push({
@@ -34,7 +32,6 @@ export const validateCrossTable = (
     }
   });
 
-  // Example 3: Check for duplicate IDs across tables (shouldn't happen)
   clients.forEach((client, i) => {
     if (workerIDs.has(client.ClientID)) {
       errors.push({
@@ -45,7 +42,6 @@ export const validateCrossTable = (
     }
   });
 
-  // Example 4: Check numeric ranges in cross-data context (if relevant)
   workers.forEach((worker, i) => {
     if (worker.AvailableSlots) {
       try {
